@@ -1,5 +1,6 @@
 // Grispella API Client for Node.js + Express + PostgreSQL Backend
-const BASE_URL = "";
+// Dynamic base URL: uses VITE_API_URL environment variable if set, otherwise relative to current host
+const BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 function getHeaders() {
   const token = localStorage.getItem("grispella_token");
