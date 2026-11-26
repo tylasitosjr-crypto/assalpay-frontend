@@ -32,6 +32,10 @@ export default function LoginPage() {
 
   const handleLogin = (userToLogin) => {
     loginUser(userToLogin);
+    // Also obtain a valid backend JWT token if available
+    grispellaApi
+      .login(userToLogin.username, userToLogin.password || "password123")
+      .catch(() => null);
     toast.success(`Bienvenue, ${userToLogin.name} (${userToLogin.title}) !`);
     const targetPath = getDefaultPathForRole(userToLogin.role);
     navigate(targetPath, { replace: true });

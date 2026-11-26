@@ -14,6 +14,8 @@ function getHeaders() {
     try {
       const u = JSON.parse(user);
       if (u.id) headers["x-user-id"] = u.id;
+      if (u.username) headers["x-user-name"] = u.username;
+      if (u.role) headers["x-user-role"] = u.role;
     } catch {
       // ignore
     }
