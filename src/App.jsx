@@ -1,95 +1,173 @@
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import { useAuth } from "./context/AuthContext.jsx";
-import { TOKEN_KEY } from "./api/axiosInstance.js";
-import BuyerLayout from "./components/layout/BuyerLayout.jsx";
-import VendorLayout from "./components/layout/VendorLayout.jsx";
-import Login from "./pages/auth/Login.jsx";
-import Signup from "./pages/auth/Signup.jsx";
-import VerifyOtp from "./pages/auth/VerifyOtp.jsx";
-import ForgotPassword from "./pages/auth/ForgotPassword.jsx";
-import HomePage from "./pages/home/HomePage.jsx";
-import ProductList from "./pages/products/ProductList.jsx";
-import ProductDetail from "./pages/products/ProductDetail.jsx";
-import CartPage from "./pages/cart/CartPage.jsx";
-import CheckoutPage from "./pages/checkout/CheckoutPage.jsx";
-import OrderList from "./pages/orders/OrderList.jsx";
-import OrderDetail from "./pages/orders/OrderDetail.jsx";
-import WishlistPage from "./pages/wishlist/WishlistPage.jsx";
-import ProfilePage from "./pages/profile/ProfilePage.jsx";
-import AddressBook from "./pages/profile/AddressBook.jsx";
-import NotificationsPage from "./pages/misc/NotificationsPage.jsx";
-import FaqPage from "./pages/misc/FaqPage.jsx";
-import ContactPage from "./pages/misc/ContactPage.jsx";
-import VendorDashboard from "./pages/vendor/VendorDashboard.jsx";
-import VendorProductList from "./pages/vendor/VendorProductList.jsx";
-import VendorProductForm from "./pages/vendor/VendorProductForm.jsx";
-import VendorOrderList from "./pages/vendor/VendorOrderList.jsx";
-import VendorOrderDetail from "./pages/vendor/VendorOrderDetail.jsx";
-import VendorWallet from "./pages/vendor/VendorWallet.jsx";
-
-function AuthBootstrap({ children }) {
-  const { refreshMe, logout } = useAuth();
-  useEffect(() => {
-    if (localStorage.getItem(TOKEN_KEY)) {
-      refreshMe().catch(() => logout());
-    }
-  }, []);
-  return children;
-}
-
-function PrivateRoute({ children }) {
-  return localStorage.getItem(TOKEN_KEY) ? children : <Navigate to="/login" replace />;
-}
-
-function VendorRoute({ children }) {
-  const { user, isVendor } = useAuth();
-  if (!localStorage.getItem(TOKEN_KEY)) return <Navigate to="/login" replace />;
-  if (user && !isVendor) return <Navigate to="/" replace />;
-  return children;
-}
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import LoginPage from './pages/auth/LoginPage';
+import Dashboard from './pages/Dashboard';
+import POS from './pages/POS';
+import Invoices from './pages/Invoices';
+import Customers from './pages/Customers';
+import CashRegister from './pages/CashRegister';
+import Products from './pages/Products';
+import Stock from './pages/Stock';
+import Movements from './pages/Movements';
+import Receipts from './pages/Receipts';
+import Deliveries from './pages/Deliveries';
+import Suppliers from './pages/Suppliers';
+import Expenses from './pages/Expenses';
+import Reports from './pages/Reports';
+import Audit from './pages/Audit';
+import Settings from './pages/Settings';
+import Roles from './pages/Roles';
 
 export default function App() {
   return (
-    <AuthBootstrap>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/verify-otp" element={<VerifyOtp />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
 
-        {/* Buyer / Public */}
-        <Route path="/" element={<BuyerLayout />}>
-          <Route index element={<HomePage />} />
-          <Route path="products" element={<ProductList />} />
-          <Route path="products/:id" element={<ProductDetail />} />
-          <Route path="faq" element={<FaqPage />} />
-          <Route path="contact" element={<ContactPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute allowedRoles={['admin', 'caisse', 'resp_stock', 'agent_stock']}>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        {/* Dashboard is accessible to all authenticated roles with role-specific widgets */}
+        <Route index element={<Dashboard />} />
 
-          <Route path="cart" element={<PrivateRoute><CartPage /></PrivateRoute>} />
-          <Route path="checkout" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
-          <Route path="orders" element={<PrivateRoute><OrderList /></PrivateRoute>} />
-          <Route path="orders/:id" element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
-          <Route path="wishlist" element={<PrivateRoute><WishlistPage /></PrivateRoute>} />
-          <Route path="profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-          <Route path="addresses" element={<PrivateRoute><AddressBook /></PrivateRoute>} />
-          <Route path="notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
-        </Route>
+        {/* Caisse / Sales Only (Admin + Caisse) */}
+        <Route
+          path="pos"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'caisse']}>
+              <POS />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="invoices"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'caisse']}>
+              <Invoices />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="customers"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'caisse']}>
+              <Customers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="cash-register"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'caisse']}>
+              <CashRegister />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* Vendor Portal */}
-        <Route path="/vendor" element={<VendorRoute><VendorLayout /></VendorRoute>}>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<VendorDashboard />} />
-          <Route path="products" element={<VendorProductList />} />
-          <Route path="products/new" element={<VendorProductForm />} />
-          <Route path="products/:id/edit" element={<VendorProductForm />} />
-          <Route path="orders" element={<VendorOrderList />} />
-          <Route path="orders/:id" element={<VendorOrderDetail />} />
-          <Route path="wallet" element={<VendorWallet />} />
-        </Route>
+        {/* Stock & Logistics Only (Admin + Resp Stock + Agent Stock) */}
+        <Route
+          path="products"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'resp_stock', 'agent_stock']}>
+              <Products />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="stock"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'resp_stock', 'agent_stock']}>
+              <Stock />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="movements"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'resp_stock', 'agent_stock']}>
+              <Movements />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="receipts"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'resp_stock', 'agent_stock']}>
+              <Receipts />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="deliveries"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'resp_stock', 'agent_stock']}>
+              <Deliveries />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Suppliers: Admin + Resp Stock only (Agent cannot view supplier agreements/balances) */}
+        <Route
+          path="suppliers"
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'resp_stock']}>
+              <Suppliers />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Finance & Management: Admin ONLY */}
+        <Route
+          path="expenses"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Expenses />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="reports"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="audit"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Audit />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="settings"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Roles & Users: Admin ONLY */}
+        <Route
+          path="roles"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Roles />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AuthBootstrap>
+      </Route>
+    </Routes>
   );
 }
